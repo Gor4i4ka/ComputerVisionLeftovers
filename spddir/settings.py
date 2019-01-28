@@ -23,7 +23,7 @@ ROBOTSTXT_OBEY = False
 
 #IMSTORE
 ITEM_PIPELINES = {'scrapy.pipelines.images.ImagesPipeline': 1}
-IMAGE_STORE = '/home/gor4i4ka/img'
+IMAGES_STORE = '/home/gor4i4ka/img'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
