@@ -1,5 +1,5 @@
 #Libraries
-from matplotlib import pyplot as py
+#from matplotlib import pyplot as py
 from PIL import Image
 import numpy as np
 import glob
@@ -13,9 +13,10 @@ from random import randint
 
 # Global Vars
 SIZE = 250
-FRAME = 384
+#FRAME = 384
+FRAME = 224
 RGB = 3
-PATH = 'D://IMGBUF1/'
+#PATH = 'D://IMGBUF1/'
 def polynom(X, GRADE):
     X_R = np.zeros((X.shape[0], GRADE*X.shape[1]))
     for i in range(X_R.shape[0]):
@@ -35,10 +36,21 @@ def norm(X):
             X[i] = X[i]/X[i].max()
 
 #histogram for tree and linear
-def histogram(X, BINS, NUM):
+def histogram(X, NUM, net=False):
     global RGB
     global FRAME
-    X_H = np.zeros((X.shape[0], NUM, RGB))
+
+    if not net:
+        X_H = np.zeros((X.shape[0], NUM, RGB))
+        BINS = np.zeros((NUM + 1))
+        for i in range(1, NUM + 1):
+            BINS[i] = NUM * i
+    else:
+        X_H = np.zeros((X.shape[0], NUM, NUM, RGB))
+        BINS = np.zeros((NUM * NUM + 1))
+        for i in range(1, NUM * NUM + 1):
+            BINS[i] = NUM * i
+
     for i in range(X.shape[0]):
         X_RED = X[i, :, :, 0].flatten()
         X_GRE = X[i, :, :, 1].flatten()
@@ -50,17 +62,29 @@ def histogram(X, BINS, NUM):
         X_BLU = np.histogram(X_BLU, bins=BINS)[0]
         #print(X_RED.shape, X_GRE.shape, X_BLU.shape)
         #print(X_RED, X_GRE, X_BLU)
-        for j in range(NUM):
-            X_H[i, :, 0] = X_RED
-            X_H[i, :, 1] = X_GRE
-            X_H[i, :, 2] = X_BLU
+        if not net:
+            for j in range(NUM):
+                X_H[i, :, 0] = X_RED
+                X_H[i, :, 1] = X_GRE
+                X_H[i, :, 2] = X_BLU
+        else:
+            X_RED = np.reshape(X_RED, ((NUM, NUM)))
+            X_BLU = np.reshape(X_BLU, ((NUM, NUM)))
+            X_GRE = np.reshape(X_GRE, ((NUM, NUM)))
+
+            X_H[i, :, :, 0] = X_RED
+            X_H[i, :, :, 1] = X_GRE
+            X_H[i, :, :, 2] = X_BLU
     print('HISTOGRAM DONE:', X_H.shape)
     return X_H
 
 #Loading npy arrays
-def data_load(CLASSES, PARTS, PATH):
+def data_load(CLASSES, PARTS, PATH, multi=False):
     global SIZE
-    Y = np.zeros((CLASSES*PARTS*SIZE))
+    if multi:
+        Y = np.zeros((CLASSES*PARTS*SIZE, CLASSES))
+    else:
+        Y = np.zeros((CLASSES*PARTS*SIZE))
     X = np.zeros((CLASSES*PARTS*SIZE, FRAME, FRAME, RGB))
     # size of BUF: BUF_X = np.zeros((SIZE, FRAME, FRAME, RGB))
     IND = 0
@@ -71,7 +95,10 @@ def data_load(CLASSES, PARTS, PATH):
 
             for i in range(BUF_X.shape[0]):
                 X[IND] = BUF_X[i]
-                Y[IND] = cls
+                if multi:
+                    Y[IND][cls] = 1
+                else:
+                    Y[IND] = cls
                 IND += 1
             print('LOADED ', LOC_PATH)
     return X, Y
