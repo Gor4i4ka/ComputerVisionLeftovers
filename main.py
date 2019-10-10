@@ -9,7 +9,7 @@ from functions import *
 from model import *
 
 # main body
-
+# holla
 model = east_net()
 
 model = model_train(model, setweights=True, iteration=iteration)
